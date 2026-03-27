@@ -29,12 +29,24 @@ COMMIT_SCOPE=$(echo "$COMMIT_MSG" | sed -E 's/^[a-z]+\(([^)]+)\):.+/\1/')
 COMMIT_DESC=$(echo "$COMMIT_MSG" | sed -E 's/^[a-z]+\([^)]+\): (.+)/\1/')
 
 # Get changed TS/TSX files
-CHANGED_FILES=$(git diff HEAD~1 HEAD --name-only 2>/dev/null | \
-  grep -E '\.(ts|tsx)$' | \
-  grep -v 'node_modules\|\.d\.ts\|vite-env')
+# On first commit HEAD~1 doesn't exist — fall back to listing all tracked TS files
+if git rev-parse HEAD~1 > /dev/null 2>&1; then
+  CHANGED_FILES=$(git diff HEAD~1 HEAD --name-only 2>/dev/null | \
+    grep -E '\.(ts|tsx)$' | \
+    grep -v 'node_modules\|\.d\.ts\|vite-env')
+else
+  CHANGED_FILES=$(git ls-tree -r HEAD --name-only 2>/dev/null | \
+    grep -E '\.(ts|tsx)$' | \
+    grep -v 'node_modules\|\.d\.ts\|vite-env')
+fi
 
 FILE_LIST=$(echo "$CHANGED_FILES" | sed 's/^/  - /')
-DIFF=$(git diff HEAD~1 HEAD --unified=3 -- $CHANGED_FILES 2>/dev/null | head -300)
+# Get diff — handle first commit case
+if git rev-parse HEAD~1 > /dev/null 2>&1; then
+  DIFF=$(git diff HEAD~1 HEAD --unified=3 -- $CHANGED_FILES 2>/dev/null | head -300)
+else
+  DIFF=$(git show HEAD --unified=3 -- $CHANGED_FILES 2>/dev/null | head -300)
+fi
 
 # Full git log for JOURNEY grouping
 GIT_LOG=$(git log --oneline --no-decorate 2>/dev/null | head -50)
