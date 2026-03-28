@@ -87,8 +87,20 @@ export function MarketTable({
         <table role="table" className="w-full border-collapse text-left">
           <MarketTableHeader sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
           <tbody onKeyDown={handleTbodyKeyDown}>
-            {loading || (isRateLimited && coins.length === 0)
+            {loading
               ? Array.from({ length: SKELETON_ROW_COUNT }, (_, i) => <SkeletonRow key={i} />)
+              : isRateLimited && coins.length === 0
+                ? (
+                  <tr role="row">
+                    <td colSpan={6}>
+                      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                        <span className="text-4xl" aria-hidden="true">⚠</span>
+                        <p className="text-base font-medium text-gray-800">No market data available</p>
+                        <p className="text-sm text-gray-500">Use the retry button above to reload</p>
+                      </div>
+                    </td>
+                  </tr>
+                )
               : sorted.length === 0 && searchQuery
                 ? (
                   <tr role="row">

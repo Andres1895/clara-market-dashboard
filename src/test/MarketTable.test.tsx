@@ -110,9 +110,10 @@ describe('MarketTable — rate-limit states', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
-  it('shows skeleton rows (not empty body) when rate-limited with no cached data', () => {
+  it('shows error state when rate-limited with no cached data (no skeleton rows)', () => {
     render(<MarketTable coins={[]} isRateLimited {...defaultProps} />);
-    expect(document.querySelectorAll('tr.animate-pulse').length).toBe(8);
+    expect(document.querySelectorAll('tr.animate-pulse').length).toBe(0);
+    expect(screen.getByText(/no market data available/i)).toBeInTheDocument();
   });
 
   it('shows stale rows alongside the banner when rate-limited WITH cached data', () => {

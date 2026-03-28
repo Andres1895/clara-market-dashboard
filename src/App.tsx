@@ -34,7 +34,7 @@ function syncCoinParam(id: string | null) {
 }
 
 function AppContent() {
-  const { coins, isLoading, isRateLimited, refetch, dataUpdatedAt } = useMarketData();
+  const { coins, isLoading, isRateLimited, refetch, dataUpdatedAt, status } = useMarketData();
   const [selectedCoinId, setSelectedCoinId] = useState<string | null>(getInitialCoinId);
 
   function selectCoin(id: string | null) {
@@ -57,7 +57,7 @@ function AppContent() {
         <MarketTable
           coins={coins}
           loading={isLoading}
-          isRateLimited={isRateLimited}
+          isRateLimited={status === "error" }
           onRetry={refetch}
           selectedId={selectedCoinId}
           onRowClick={selectCoin}

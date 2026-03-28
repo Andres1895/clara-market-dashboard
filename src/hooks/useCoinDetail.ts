@@ -9,7 +9,7 @@ const GC_TIME = 10 * 60 * 1000;
  * Exposes `isRateLimited` so callers can surface a retry button instead of a generic error.
  *
  * @param coinId - CoinGecko coin id (e.g. `"bitcoin"`), or null to disable fetching
- * @returns `coin` object (or null), loading/error flags, rate-limit flag, and a `refetch` trigger
+ * @returns `coin` object (or null), loading/error flags, rate-limit flag, `refetch` trigger, and TanStack `status`
  */
 export function useCoinDetail(coinId: string | null) {
   const { data, isLoading, isError, error, refetch, status } = useQuery({

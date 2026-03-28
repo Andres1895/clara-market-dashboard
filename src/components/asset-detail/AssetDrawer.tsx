@@ -6,10 +6,16 @@ import { RateLimitBanner } from "../ui/RateLimitBanner";
 import { PriceChart } from "./PriceChart";
 import { AssetDescription } from "./AssetDescription";
 
+/**
+ * Props for the AssetDrawer component.
+ */
 interface AssetDrawerProps {
+  /** CoinGecko coin id to display; pass null to render nothing. */
   coinId: string | null;
+  /** Called when the drawer should close. */
   onClose: () => void;
   isRateLimited?: boolean;
+  /** Called when the user clicks retry after a rate-limit error. */
   onRetry?: () => void;
 }
 
@@ -37,12 +43,13 @@ function DrawerSkeleton() {
   );
 }
 
-export function AssetDrawer({ coinId, onClose, onRetry }: AssetDrawerProps) {
+export function AssetDrawer({ coinId, onClose, isRateLimited: marketRateLimited, onRetry }: AssetDrawerProps) {
   if (!coinId) return null;
   return (
     <AssetDrawerPanel
       coinId={coinId}
       onClose={onClose}
+      marketRateLimited={marketRateLimited ?? false}
       onMarketRetry={onRetry}
     />
   );
@@ -51,14 +58,15 @@ export function AssetDrawer({ coinId, onClose, onRetry }: AssetDrawerProps) {
 interface AssetDrawerPanelProps {
   coinId: string;
   onClose: () => void;
+  marketRateLimited: boolean;
   onMarketRetry?: () => void;
 }
 
-function AssetDrawerPanel({ coinId, onClose, onMarketRetry }: AssetDrawerPanelProps) {
-  const { coin, isLoading, refetch: refetchDetail, status: detailStatus } =useCoinDetail(coinId);
-  const { prices, refetch: refetchHistory, status: historyStatus } = usePriceHistory(coinId);
+function AssetDrawerPanel({ coinId, onClose, marketRateLimited, onMarketRetry }: AssetDrawerPanelProps) {
+  const { coin, isLoading, isRateLimited: detailRateLimited, refetch: refetchDetail } = useCoinDetail(coinId);
+  const { prices, isRateLimited: historyRateLimited, refetch: refetchHistory } = usePriceHistory(coinId);
 
-  const isRateLimited = detailStatus === "error" || historyStatus === "error" 
+  const isRateLimited = detailRateLimited || historyRateLimited || marketRateLimited;
 
   function handleRetry() {
     void refetchDetail();

@@ -18,7 +18,36 @@ A dedicated CoinGecko API client was added in `src/api/coingecko.ts` as the sing
 - feat(api): add CoinGecko client with rate limit handling [e40e710]
 
 ## hooks
-Three TanStack Query hooks wrap the API client: `useMarketData` for the top-coins list (auto-refreshes every 60 s), `useCoinDetail` for per-coin detail (enabled only when a coin id is provided), and `usePriceHistory` for 7-day OHLC data (also guarded by a null check). All hooks apply the project-wide 5 min stale / 10 min gc times and expose `isRateLimited` derived from the error type so UI layers can render actionable feedback without inspecting raw errors.
+Three TanStack Query hooks wrap the API client: `useMarketData` for the top-coins list (auto-refreshes every 60 s), `useCoinDetail` for per-coin detail (enabled only when a coin id is provided), and `usePriceHistory` for 7-day OHLC data (also guarded by a null check). All hooks apply the project-wide 5 min stale / 10 min gc times and expose `isRateLimited` derived from the error type so UI layers can render actionable feedback without inspecting raw errors. Each hook also exposes the raw TanStack `status` string for callers that need finer-grained state than the boolean flags.
 
 - feat(hooks): add useMarketData, useCoinDetail, usePriceHistory [aa5b196]
+
+## ui
+Shared UI primitives were built before the main table to keep presentational concerns out of data components. `SkeletonRow` provides animated loading placeholders, `RateLimitBanner` surfaces 429 errors with a retry button, and `EmptyState` handles empty result sets. Formatters for currency, percentage, and human-readable market cap were also extracted into `src/lib/formatters.ts` so display logic is never duplicated across components.
+
+- feat(ui): add currency, percentage and date formatters [24637d4]
+- feat(ui): add SkeletonRow, RateLimitBanner, EmptyState components [2f5d8ac]
+
+## market-table
+The main `MarketTable` component renders the top-coins list with sortable columns and a live search filter. Keyboard navigation was built in from the start: arrow keys move between rows and Enter opens the detail drawer, satisfying accessibility requirements without a separate pass. An inline `Sparkline` component uses Recharts to render the 7-day price trend inside each row without a separate API call, since sparkline data is bundled in the market list response.
+
+- feat(market-table): add sortable, filterable MarketTable with keyboard nav [b35ae94]
+- feat(market-table): add inline Sparkline component [9e15480]
+
+## detail-panel
+`AssetDrawer` is a slide-in panel that loads full coin detail and a 7-day price chart when a row is selected. Focus is trapped inside the drawer while open and returned to the trigger row on close, meeting WCAG focus management requirements. The drawer reads its own rate-limit state from `useCoinDetail` and `usePriceHistory` rather than receiving it as a prop, keeping the parent (`App`) free of detail-level error state.
+
+- feat(detail-panel): add AssetDrawer with PriceChart and focus trap [5f50c75]
+
+## testing
+Unit testing infrastructure was added with Vitest and React Testing Library. The initial test suite covers `RateLimitBanner` rendering and retry behavior, and verifies that the browser tab title reflects the app name. Configuration was kept minimal — no custom resolvers or mocks beyond what the framework provides — to keep the test setup easy to extend.
+
+- feature(testing-configuration): adding config for unit testing & rate limit banner test [05005bb]
+- feature(unit-testing): adding the test for rate limiter and the name of the tab [3d2071d]
+
+## rate-limit-error
+Two rounds of fixes refined how 429 errors are surfaced. The first pass wired up `RateLimitBanner` across the app and added a retry flow. The second pass replaced boolean `isRateLimited` prop-drilling with direct inspection of TanStack Query's `status` field inside `AssetDrawerPanel`, removing an unnecessary prop from `AssetDrawer`'s public API. `useMarketData`'s `refetchInterval` was also tightened to pause auto-refresh only on `RateLimitError`, not on generic network failures, so transient errors don't permanently halt background refresh. `QueryClient` was moved into `useState` in `App` to prevent it from being recreated across React renders.
+
+- fix(rate-limit-error): Modifications in api calls and ui page to handle correcly the rate-limit request [d7dd962]
+- fix(rate-limit-error): modifying the request to use the status and show correctly the rate limiter banner [3d011f5]
 

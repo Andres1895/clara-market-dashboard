@@ -8,7 +8,7 @@ const GC_TIME = 10 * 60 * 1000;
  * Fetches the 7-day price history for a coin, skipping the query when `coinId` is null.
  *
  * @param coinId - CoinGecko coin id (e.g. `"bitcoin"`), or null to disable fetching
- * @returns `prices` array of `[timestamp, price]` tuples, loading/error flags, rate-limit flag, and `refetch`
+ * @returns `prices` array of `[timestamp, price]` tuples, loading/error flags, rate-limit flag, `refetch`, and TanStack `status`
  */
 export function usePriceHistory(coinId: string | null) {
   const { data, isLoading, isError, error, refetch, status } = useQuery({

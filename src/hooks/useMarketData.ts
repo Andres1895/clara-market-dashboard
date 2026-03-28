@@ -7,9 +7,9 @@ const REFETCH_INTERVAL = 60 * 1000;
 
 /**
  * Fetches and caches the top coins by market cap, auto-refreshing every 60 seconds.
- * Exposes `isRateLimited` to distinguish 429 errors from other failures.
+ * Auto-refresh pauses only on 429 errors — non-rate-limit errors (e.g. network) still allow retry.
  *
- * @returns `coins` array, loading/error flags, rate-limit flag, and a `refetch` trigger
+ * @returns `coins` array, loading/error flags, rate-limit flag, `refetch` trigger, and TanStack `status`
  */
 export function useMarketData() {
   const { data, isLoading, isError, error, refetch, dataUpdatedAt, status } = useQuery({
