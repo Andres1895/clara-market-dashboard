@@ -12,7 +12,7 @@ const GC_TIME = 10 * 60 * 1000;
  * @returns `coin` object (or null), loading/error flags, rate-limit flag, and a `refetch` trigger
  */
 export function useCoinDetail(coinId: string | null) {
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch, status } = useQuery({
     queryKey: ["coinDetail", coinId],
     queryFn: () => fetchCoinDetail(coinId!),
     staleTime: STALE_TIME,
@@ -26,5 +26,6 @@ export function useCoinDetail(coinId: string | null) {
     isError,
     isRateLimited: isRateLimitError(error),
     refetch,
+    status,
   };
 }

@@ -7,14 +7,17 @@ import { AssetDrawer } from "./components/asset-detail/AssetDrawer";
 const STALE_TIME = 5 * 60 * 1000;
 const GC_TIME = 10 * 60 * 1000;
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: STALE_TIME,
-      gcTime: GC_TIME,
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: STALE_TIME,
+        gcTime: GC_TIME,
+        refetchOnWindowFocus: false,
+      },
     },
-  },
-});
+  });
+}
 
 function getInitialCoinId(): string | null {
   return new URLSearchParams(window.location.search).get("coin");
@@ -73,6 +76,7 @@ function AppContent() {
 }
 
 export function App() {
+  const [queryClient] = useState(makeQueryClient);
   return (
     <QueryClientProvider client={queryClient}>
       <AppContent />

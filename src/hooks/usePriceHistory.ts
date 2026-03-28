@@ -11,7 +11,7 @@ const GC_TIME = 10 * 60 * 1000;
  * @returns `prices` array of `[timestamp, price]` tuples, loading/error flags, rate-limit flag, and `refetch`
  */
 export function usePriceHistory(coinId: string | null) {
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch, status } = useQuery({
     queryKey: ["priceHistory", coinId],
     // coinId is guaranteed non-null here by the enabled guard below
     queryFn: () => fetchPriceHistory(coinId!),
@@ -26,5 +26,6 @@ export function usePriceHistory(coinId: string | null) {
     isError,
     isRateLimited: isRateLimitError(error),
     refetch,
+    status,
   };
 }

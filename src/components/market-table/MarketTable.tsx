@@ -10,7 +10,7 @@ const SKELETON_ROW_COUNT = 8;
 
 interface MarketTableProps {
   coins: CoinMarket[];
-  selectedId: string | null;
+  selectedId?: string | null;
   onRowClick: (id: string) => void;
   loading?: boolean;
   isRateLimited?: boolean;
@@ -20,7 +20,7 @@ interface MarketTableProps {
 
 export function MarketTable({
   coins,
-  selectedId,
+  selectedId = null,
   onRowClick,
   loading = false,
   isRateLimited = false,

@@ -10,8 +10,6 @@ export function AssetDescription({ text }: AssetDescriptionProps) {
   const [expanded, setExpanded] = useState(false);
 
   if (!text) return null;
-
-  // Strip HTML tags — CoinGecko descriptions contain <a> links and other markup
   const plain = text.replace(/<[^>]+>/g, "");
   if (!plain.trim()) return null;
 

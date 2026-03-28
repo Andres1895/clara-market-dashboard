@@ -12,12 +12,12 @@ const REFETCH_INTERVAL = 60 * 1000;
  * @returns `coins` array, loading/error flags, rate-limit flag, and a `refetch` trigger
  */
 export function useMarketData() {
-  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useQuery({
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt, status } = useQuery({
     queryKey: ["marketData"],
     queryFn: fetchMarketData,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
-    refetchInterval: (query) => (query.state.error ? false : REFETCH_INTERVAL),
+    refetchInterval: (query) => (isRateLimitError(query.state.error) ? false : REFETCH_INTERVAL),
     retry: coingeckoQueryRetry,
   });
 
@@ -27,6 +27,7 @@ export function useMarketData() {
     isError,
     isRateLimited: isRateLimitError(error),
     refetch,
-    dataUpdatedAt,
+    dataUpdatedAt,  
+    status,
   };
 }

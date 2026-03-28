@@ -37,13 +37,12 @@ function DrawerSkeleton() {
   );
 }
 
-export function AssetDrawer({ coinId, onClose, isRateLimited: marketRateLimited, onRetry }: AssetDrawerProps) {
+export function AssetDrawer({ coinId, onClose, onRetry }: AssetDrawerProps) {
   if (!coinId) return null;
   return (
     <AssetDrawerPanel
       coinId={coinId}
       onClose={onClose}
-      marketRateLimited={marketRateLimited ?? false}
       onMarketRetry={onRetry}
     />
   );
@@ -52,17 +51,14 @@ export function AssetDrawer({ coinId, onClose, isRateLimited: marketRateLimited,
 interface AssetDrawerPanelProps {
   coinId: string;
   onClose: () => void;
-  marketRateLimited: boolean;
   onMarketRetry?: () => void;
 }
 
-function AssetDrawerPanel({ coinId, onClose, marketRateLimited, onMarketRetry }: AssetDrawerPanelProps) {
-  const { coin, isLoading, isRateLimited: detailRateLimited, refetch: refetchDetail } =
-    useCoinDetail(coinId);
-  const { prices, isRateLimited: historyRateLimited, refetch: refetchHistory } =
-    usePriceHistory(coinId);
+function AssetDrawerPanel({ coinId, onClose, onMarketRetry }: AssetDrawerPanelProps) {
+  const { coin, isLoading, refetch: refetchDetail, status: detailStatus } =useCoinDetail(coinId);
+  const { prices, refetch: refetchHistory, status: historyStatus } = usePriceHistory(coinId);
 
-  const isRateLimited = detailRateLimited || historyRateLimited || marketRateLimited;
+  const isRateLimited = detailStatus === "error" || historyStatus === "error" 
 
   function handleRetry() {
     void refetchDetail();
