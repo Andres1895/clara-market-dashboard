@@ -15,6 +15,7 @@ interface MarketTableProps {
   loading?: boolean;
   isRateLimited?: boolean;
   onRetry?: () => void;
+  lastUpdatedAt?: number;
 }
 
 export function MarketTable({
@@ -24,6 +25,7 @@ export function MarketTable({
   loading = false,
   isRateLimited = false,
   onRetry = () => {},
+  lastUpdatedAt,
 }: MarketTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("market_cap_rank");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -65,20 +67,27 @@ export function MarketTable({
     <div className="flex flex-col gap-3">
       {isRateLimited && <RateLimitBanner onRetry={onRetry} />}
 
-      <input
-        type="search"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search by name or symbol…"
-        aria-label="Filter coins by name or symbol"
-        className="w-full max-w-sm rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <div className="flex items-center gap-4">
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name or symbol…"
+          aria-label="Filter coins by name or symbol"
+          className="w-full max-w-sm rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {lastUpdatedAt != null && lastUpdatedAt > 0 && (
+          <span className="whitespace-nowrap text-xs text-gray-400" aria-live="polite">
+            Updated {new Date(lastUpdatedAt).toLocaleTimeString()}
+          </span>
+        )}
+      </div>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table role="table" className="w-full border-collapse text-left">
           <MarketTableHeader sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
           <tbody onKeyDown={handleTbodyKeyDown}>
-            {loading
+            {loading || (isRateLimited && coins.length === 0)
               ? Array.from({ length: SKELETON_ROW_COUNT }, (_, i) => <SkeletonRow key={i} />)
               : sorted.length === 0 && searchQuery
                 ? (

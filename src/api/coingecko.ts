@@ -28,6 +28,19 @@ export class RateLimitError extends Error {
     this.name = "RateLimitError";
   }
 }
+export function isRateLimitError(error: unknown): error is RateLimitError {
+  if (error instanceof RateLimitError) {
+    return true;
+  }
+  return error instanceof Error && error.name === "RateLimitError";
+}
+
+export function coingeckoQueryRetry(failureCount: number, error: unknown): boolean {
+  if (isRateLimitError(error)) {
+    return false;
+  }
+  return failureCount < 3;
+}
 
 async function apiFetch<T>(url: string): Promise<T> {
   const response = await fetch(url);

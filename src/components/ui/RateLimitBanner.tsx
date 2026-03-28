@@ -7,22 +7,30 @@ export function RateLimitBanner({ onRetry, retryIn }: RateLimitBannerProps) {
   return (
     <div
       role="alert"
-      className="flex items-center justify-between gap-4 rounded-lg bg-amber-50 px-4 py-3 text-amber-800 ring-1 ring-amber-200"
+      aria-live="polite"
+      className="flex w-full items-center justify-between gap-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3"
     >
-      <div className="flex items-center gap-2 text-sm">
-        <span aria-hidden="true">⚠</span>
-        <span>
-          Rate limit reached.{" "}
-          {retryIn !== undefined
-            ? `Retrying in ${retryIn}s…`
-            : "Please retry manually."}
-        </span>
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 text-red-500" aria-hidden="true">⚠</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm text-red-500">Rate limit reached.</span>
+          {retryIn !== undefined && (
+            <span className="text-sm text-amber-400/80">
+              Auto-retrying in {retryIn}s…
+            </span>
+          )}
+          <span className="text-xs text-amber-500/60">
+            CoinGecko free tier allows ~10–30 requests/min
+          </span>
+        </div>
       </div>
+
       <button
         onClick={onRetry}
-        className="shrink-0 rounded-md bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900 hover:bg-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500"
+        aria-label="Retry request now"
+        className="shrink-0 rounded-md border border-amber-500/40 px-3 py-1.5 text-sm font-medium text-amber-400 hover:border-amber-500/70 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
       >
-        Retry
+        Retry now
       </button>
     </div>
   );

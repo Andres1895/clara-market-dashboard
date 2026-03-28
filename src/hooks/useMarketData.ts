@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchMarketData, RateLimitError } from "../api/coingecko";
+import { coingeckoQueryRetry, fetchMarketData, isRateLimitError } from "../api/coingecko";
 
 const STALE_TIME = 5 * 60 * 1000;
 const GC_TIME = 10 * 60 * 1000;
@@ -12,19 +12,21 @@ const REFETCH_INTERVAL = 60 * 1000;
  * @returns `coins` array, loading/error flags, rate-limit flag, and a `refetch` trigger
  */
 export function useMarketData() {
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: ["marketData"],
     queryFn: fetchMarketData,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
-    refetchInterval: REFETCH_INTERVAL,
+    refetchInterval: (query) => (query.state.error ? false : REFETCH_INTERVAL),
+    retry: coingeckoQueryRetry,
   });
 
   return {
     coins: data ?? [],
     isLoading,
     isError,
-    isRateLimited: error instanceof RateLimitError,
+    isRateLimited: isRateLimitError(error),
     refetch,
+    dataUpdatedAt,
   };
 }

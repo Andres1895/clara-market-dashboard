@@ -9,6 +9,8 @@ import { AssetDescription } from "./AssetDescription";
 interface AssetDrawerProps {
   coinId: string | null;
   onClose: () => void;
+  isRateLimited?: boolean;
+  onRetry?: () => void;
 }
 
 function DrawerSkeleton() {
@@ -35,21 +37,43 @@ function DrawerSkeleton() {
   );
 }
 
-// Wrapper: ensures AssetDrawerPanel mounts/unmounts so focus effects run correctly.
-export function AssetDrawer({ coinId, onClose }: AssetDrawerProps) {
+export function AssetDrawer({ coinId, onClose, isRateLimited: marketRateLimited, onRetry }: AssetDrawerProps) {
   if (!coinId) return null;
-  return <AssetDrawerPanel coinId={coinId} onClose={onClose} />;
+  return (
+    <AssetDrawerPanel
+      coinId={coinId}
+      onClose={onClose}
+      marketRateLimited={marketRateLimited ?? false}
+      onMarketRetry={onRetry}
+    />
+  );
 }
 
-function AssetDrawerPanel({ coinId, onClose }: { coinId: string; onClose: () => void }) {
-  const { coin, isLoading, isRateLimited, refetch } = useCoinDetail(coinId);
-  const { prices } = usePriceHistory(coinId);
+interface AssetDrawerPanelProps {
+  coinId: string;
+  onClose: () => void;
+  marketRateLimited: boolean;
+  onMarketRetry?: () => void;
+}
+
+function AssetDrawerPanel({ coinId, onClose, marketRateLimited, onMarketRetry }: AssetDrawerPanelProps) {
+  const { coin, isLoading, isRateLimited: detailRateLimited, refetch: refetchDetail } =
+    useCoinDetail(coinId);
+  const { prices, isRateLimited: historyRateLimited, refetch: refetchHistory } =
+    usePriceHistory(coinId);
+
+  const isRateLimited = detailRateLimited || historyRateLimited || marketRateLimited;
+
+  function handleRetry() {
+    void refetchDetail();
+    void refetchHistory();
+    onMarketRetry?.();
+  }
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // Store previous focus on mount, focus close button, return focus on unmount
   useEffect(() => {
     const prev = document.activeElement;
     if (prev instanceof HTMLElement) previousFocusRef.current = prev;
@@ -57,7 +81,6 @@ function AssetDrawerPanel({ coinId, onClose }: { coinId: string; onClose: () => 
     return () => { previousFocusRef.current?.focus(); };
   }, []);
 
-  // Close on Escape
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -66,13 +89,13 @@ function AssetDrawerPanel({ coinId, onClose }: { coinId: string; onClose: () => 
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Focus trap: cycle Tab within drawer
   useEffect(() => {
     const drawer = drawerRef.current;
     if (!drawer) return;
+    const root = drawer;
     function handleTab(e: KeyboardEvent) {
       if (e.key !== "Tab") return;
-      const focusable = drawer.querySelectorAll<HTMLElement>(
+      const focusable = root.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), input, textarea, select, [tabindex]:not([tabindex="-1"])'
       );
       const first = focusable[0];
@@ -85,8 +108,8 @@ function AssetDrawerPanel({ coinId, onClose }: { coinId: string; onClose: () => 
         first?.focus();
       }
     }
-    drawer.addEventListener("keydown", handleTab);
-    return () => drawer.removeEventListener("keydown", handleTab);
+    root.addEventListener("keydown", handleTab);
+    return () => root.removeEventListener("keydown", handleTab);
   }, []);
 
   const isPositive = (coin?.market_data.price_change_percentage_24h ?? 0) >= 0;
@@ -114,7 +137,7 @@ function AssetDrawerPanel({ coinId, onClose }: { coinId: string; onClose: () => 
         </div>
 
         {isRateLimited ? (
-          <div className="p-4"><RateLimitBanner onRetry={refetch} /></div>
+          <div className="p-4"><RateLimitBanner onRetry={handleRetry} /></div>
         ) : isLoading || !coin ? (
           <DrawerSkeleton />
         ) : (
