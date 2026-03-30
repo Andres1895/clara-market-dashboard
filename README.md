@@ -9,7 +9,7 @@ Real-time crypto market data for the top 20 coins by market cap.
 ## Run locally
  
 ```bash
-git clone https://github.com/YOUR_USERNAME/clara-market-dashboard
+git clone https://github.com/Andres1895/clara-market-dashboard
 cd clara-market-dashboard
 npm install       # also installs git hooks automatically
 npm run dev       # http://localhost:5173
