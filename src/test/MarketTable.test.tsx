@@ -189,13 +189,14 @@ describe('MarketTable — sorting', () => {
   it('sets aria-sort="ascending" on the initially active column', () => {
     render(<MarketTable coins={[bitcoin]} {...defaultProps} />);
     const headers = screen.getAllByRole('columnheader');
-    expect(headers[0]).toHaveAttribute('aria-sort', 'ascending');
+    // index 0 is the star column (no aria-sort); rank is now index 1
+    expect(headers[1]).toHaveAttribute('aria-sort', 'ascending');
   });
 
   it('sets aria-sort="none" on inactive sortable columns', () => {
     render(<MarketTable coins={[bitcoin]} {...defaultProps} />);
-    // "Asset Name" is the second header (index 1)
-    expect(screen.getAllByRole('columnheader')[1]).toHaveAttribute('aria-sort', 'none');
+    // "Asset Name" is now the third header (index 2) after adding the star column
+    expect(screen.getAllByRole('columnheader')[2]).toHaveAttribute('aria-sort', 'none');
   });
 
   it('sorts by name descending on first click (new column → desc)', () => {

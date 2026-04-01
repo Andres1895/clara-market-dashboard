@@ -5,6 +5,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { RateLimitBanner } from "../ui/RateLimitBanner";
 import { MarketTableHeader, type SortKey, type SortDir } from "./MarketTableHeader";
 import { MarketTableRow } from "./MarketTableRow";
+import { useStarredAssets } from "../../hooks/useStarredAssets";
 
 const SKELETON_ROW_COUNT = 8;
 
@@ -30,6 +31,7 @@ export function MarketTable({
   const [sortKey, setSortKey] = useState<SortKey>("market_cap_rank");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const { isStarred, toggleStar } = useStarredAssets();
 
   function handleSort(key: SortKey) {
     if (key === sortKey) {
@@ -52,6 +54,10 @@ export function MarketTable({
     }
     return (a[sortKey] - b[sortKey]) * dir;
   });
+
+  const pinned = sorted.filter((coin) => isStarred(coin.id));
+  const unpinned = sorted.filter((coin) => !isStarred(coin.id));
+  const rows = [...pinned, ...unpinned];
 
   function handleTbodyKeyDown(e: KeyboardEvent<HTMLTableSectionElement>) {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
@@ -101,7 +107,7 @@ export function MarketTable({
                     </td>
                   </tr>
                 )
-              : sorted.length === 0 && searchQuery
+              : rows.length === 0 && searchQuery
                 ? (
                   <tr role="row">
                     <td colSpan={6}>
@@ -109,12 +115,14 @@ export function MarketTable({
                     </td>
                   </tr>
                 )
-                : sorted.map((coin) => (
+                : rows.map((coin) => (
                   <MarketTableRow
                     key={coin.id}
                     coin={coin}
                     isSelected={coin.id === selectedId}
                     onClick={() => onRowClick(coin.id)}
+                    isStarred={isStarred(coin.id)}
+                    onToggleStar={toggleStar}
                   />
                 ))}
           </tbody>

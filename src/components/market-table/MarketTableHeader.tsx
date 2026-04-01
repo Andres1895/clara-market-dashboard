@@ -13,6 +13,7 @@ interface Column {
 }
 
 const COLUMNS: Column[] = [
+  { label: "★", key: null },
   { label: "#", key: "market_cap_rank" },
   { label: "Asset Name", key: "name" },
   { label: "Price", key: "current_price" },
